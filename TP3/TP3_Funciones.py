@@ -142,6 +142,6 @@ def esCodigoCompacto(codigos, probabilidades):
 
 
 # Generar mensaje de la fuente de memoria
-def genMensaje(codigos, probabilidades, N):
+def genMensajeCP(codigos, probabilidades, N):
     msj = [random.choices(codigos, weights=probabilidades)[0] for _ in range(N)]
     return ''.join(msj)
