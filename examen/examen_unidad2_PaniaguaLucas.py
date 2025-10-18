@@ -113,7 +113,7 @@ def genMatrizOcurrencias(cadena):
     for i in range(len(cadena) - 1):
         origen = alfabeto.index(cadena[i])
         destino = alfabeto.index(cadena[i + 1])
-        matriz_ocurrencias[origen][destino] += 1
+        matriz_ocurrencias[destino][origen] += 1    # cuando entregue era: matriz_ocurrencias[origen][destino] += 1
 
     return matriz_ocurrencias
 

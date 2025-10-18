@@ -67,11 +67,11 @@ def calculoEntropiaBin(probW, base = 2):
 
 
 # Generar alfabeto de extension de orden N
-def genAlfabetoOrnN(alfabeto, N):
+def genAlfabetoOrdN(alfabeto, N):
     if N == 1:
         return alfabeto
     else:
-        alf_menor = genAlfabetoOrnN(alfabeto, N - 1)
+        alf_menor = genAlfabetoOrdN(alfabeto, N - 1)
         alf_extension = []
         for prefijo in alf_menor:
             for simbolo in alfabeto:
@@ -169,7 +169,7 @@ def genMatrizOcurrencias(cadena):
     for i in range(len(cadena) - 1):
         origen = alfabeto.index(cadena[i])
         destino = alfabeto.index(cadena[i + 1])
-        matriz_ocurrencias[origen][destino] += 1
+        matriz_ocurrencias[destino][origen] += 1
 
     return matriz_ocurrencias
 
