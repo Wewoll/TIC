@@ -1,0 +1,14 @@
+Fuente binaria:
+S1 0.8 1
+S2 0.2 0
+
+Que en extension 3 seria:
+111
+110
+101
+100
+011
+010
+001
+000
+Y cumple Shannon.

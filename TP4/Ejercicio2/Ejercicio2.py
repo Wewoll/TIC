@@ -13,6 +13,6 @@ for i in range(1,3):
     r = len(utils.genAlfabetoCodigos(codigos))
 
     print(f"\nn = {i}")
-    print(f"H{r}(S) = {utils.calculoEntropiaCP(codigos, probs):.2f}")
+    print(f"H{r}(S) = {utils.calculoEntropia(probs, r):.2f}")
     print(f"L{i} = {utils.calculoLongitudMedia(codigosN, probsN):.2f}")
     print(f"Cumple el Primer Teorema de Shannon: {TP4_Funciones.cumpleShannon(probs, codigosN, i)}")
