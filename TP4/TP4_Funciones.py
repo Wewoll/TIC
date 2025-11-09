@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import utils
+from fractions import Fraction
 
 # Verifica si se cumple el Primer Teorema de Shannon (pasar codigos extendidos)
 def cumpleShannon(probabilidades, codigos, N = 1):
@@ -103,8 +104,8 @@ def decodificarMensaje(alfabeto_fuente, codigos, cadena_codificada):
     if buffer_actual:
         return f"ERROR: No se pudo decodificar. Sobrante en el buffer: '{buffer_actual}'"
     
-    # return "".join(mensaje_decodificado) si quiero todo junto
-    return " ".join(mensaje_decodificado)
+    # return " ".join(mensaje_decodificado) si quiero todo separado
+    return "".join(mensaje_decodificado)
 
 
 # Codifica un mensaje fuente en una secuencia de bytes
@@ -148,3 +149,76 @@ def decodificarDeBytes(alfabeto_fuente, codigos, secuencia_bytes):
         bits_string = bits_string[:-padding]
             
     return decodificarMensaje(alfabeto_fuente, codigos, bits_string)
+
+
+# Calcula la tasa de compresion
+def calcularTasaCompresion(msj_og, msj_bytes):
+    tamano_original = len(msj_og)
+    tamano_comprimido = len(msj_bytes)
+    tasa_compresion = 0
+    
+    if tamano_comprimido != 0:
+        tasa_compresion = Fraction(tamano_original, tamano_comprimido)
+        # tasa_compresion = tamano_original / tamano_comprimido
+
+    return tasa_compresion
+
+
+# Comprime un mensaje usando Run Length Coding (RLC) y devuelve un bytearray.
+def comprimirRLC(mensaje):        
+    resultado_bytes = bytearray()
+    i = 0
+    n = len(mensaje)
+    
+    while i < n:
+        caracter_actual = mensaje[i]
+        contador = 0
+        
+        while i < n and mensaje[i] == caracter_actual and contador < 255:
+            contador += 1
+            i += 1
+            
+        valor_ascii = ord(caracter_actual)
+        resultado_bytes.append(valor_ascii)
+        resultado_bytes.append(contador)
+        
+    return resultado_bytes
+
+
+# Calcula distancia de Hamming, errores detectables y errores corregibles
+def analizarCodigoHamming(codigos):    
+    n = len(codigos)
+    min_distancia = float('inf')
+    
+    for i in range(n):
+        for j in range(i + 1, n):
+            dist = sum(1 for c1, c2 in zip(codigos[i], codigos[j]) if c1 != c2)
+            
+            if dist < min_distancia:
+                min_distancia = dist
+                
+    errores_detectables = min_distancia - 1
+    errores_corregibles = (min_distancia - 1) // 2
+    
+    return min_distancia, errores_detectables, errores_corregibles
+
+
+# Crea un byte con el bit de paridad (par) de un caracter ASCII
+def agregarBitParidad(caracter):
+    valor_ascii_7bits = ord(caracter) & 0x7F
+    cantidad_de_unos = bin(valor_ascii_7bits).count('1')
+    bit_paridad = cantidad_de_unos % 2
+    byte_desplazado = valor_ascii_7bits << 1
+    byte_final = byte_desplazado | bit_paridad
+    
+    return byte_final
+
+
+# Recibe un byte con paridad y verifica si es correcto
+def verificarParidad(byte_recibido):    
+    bit_paridad_recibido = byte_recibido & 1
+    datos_7bits = byte_recibido >> 1
+    cantidad_de_unos = bin(datos_7bits).count('1')
+    bit_paridad_calculado = cantidad_de_unos % 2
+    
+    return bit_paridad_recibido == bit_paridad_calculado

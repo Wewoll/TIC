@@ -1,6 +1,7 @@
 import math
 import random
 import itertools
+from fractions import Fraction
 
 """""""""""""""""""""""""""""""""""""""""""""
 ---------========   T P 2   ========---------
@@ -497,15 +498,17 @@ def recursividadShannonFano(items, codigos, prefijo = ''):
         recursividadShannonFano(grupo_inferior, codigos, prefijo + '0')
 
 
-# Calculo del Rendimiento (η) y la Redundancia (1 - η)
-def calculoRendimientoYRedundancia(codigos, probabilidades):
+# Calculo del Rendimiento (η)
+def calculoRendimiento(codigos, probabilidades):
     entropia = calculoEntropiaCP(codigos, probabilidades)
     long_media = calculoLongitudMedia(codigos, probabilidades)
 
-    rendimiento = entropia / long_media
-    redundancia = 1 - rendimiento
+    return entropia / long_media
 
-    return rendimiento, redundancia
+
+# Calculo de la Redundancia (1 - η)
+def calculoRedundancia(codigos, probabilidades):
+    return 1 - calculoRendimiento(codigos, probabilidades)
 
 
 # Decodificar el mensaje de una cadena
@@ -526,8 +529,8 @@ def decodificarMensaje(alfabeto_fuente, codigos, cadena_codificada):
     if buffer_actual:
         return f"ERROR: No se pudo decodificar. Sobrante en el buffer: '{buffer_actual}'"
     
-    # return "".join(mensaje_decodificado) si quiero todo junto
-    return " ".join(mensaje_decodificado)
+    # return " ".join(mensaje_decodificado) si quiero todo separado
+    return "".join(mensaje_decodificado)
 
 
 # Codifica un mensaje fuente en una secuencia de bytes
@@ -571,3 +574,62 @@ def decodificarDeBytes(alfabeto_fuente, codigos, secuencia_bytes):
         bits_string = bits_string[:-padding]
             
     return decodificarMensaje(alfabeto_fuente, codigos, bits_string)
+
+
+# Calcula la tasa de compresion
+def calcularTasaCompresion(msj_og, msj_bytes):
+    tamano_original = len(msj_og)
+    tamano_comprimido = len(msj_bytes)
+    tasa_compresion = 0
+    
+    if tamano_comprimido != 0:
+        tasa_compresion = Fraction(tamano_original, tamano_comprimido)
+        # tasa_compresion = tamano_original / tamano_comprimido
+
+    return tasa_compresion
+
+
+# Comprime un mensaje usando Run Length Coding (RLC) y devuelve un bytearray.
+def comprimirRLC(mensaje):        
+    resultado_bytes = bytearray()
+    i = 0
+    n = len(mensaje)
+    
+    while i < n:
+        caracter_actual = mensaje[i]
+        contador = 0
+        
+        while i < n and mensaje[i] == caracter_actual and contador < 255:
+            contador += 1
+            i += 1
+            
+        valor_ascii = ord(caracter_actual)
+        resultado_bytes.append(valor_ascii)
+        resultado_bytes.append(contador)
+        
+    return resultado_bytes
+
+
+# Calcular la distancia de Hamming (distancia mínima entre cualquier par de sus palabras código)
+def calculoHamming(codigos):
+    n = len(codigos)        
+    min_distancia = float('inf')
+    
+    for i in range(n):
+        for j in range(i + 1, n):
+            dist = sum(1 for c1, c2 in zip(codigos[i], codigos[j]) if c1 != c2)
+            
+            if dist < min_distancia:
+                min_distancia = dist
+                
+    return min_distancia
+
+
+# Calcula la cantidad de errores que un codigo puede detectar (Hamming - 1)
+def calculoErroresDetectables(codigos):
+    return calculoHamming(codigos) - 1
+
+
+# Calcula la cantidad de errores que un codigo puede corregir ((Hamming - 1) / 2)
+def calculoErroresCorregibles(codigos):
+    return (calculoHamming(codigos) - 1) // 2
