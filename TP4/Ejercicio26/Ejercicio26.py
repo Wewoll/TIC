@@ -45,13 +45,11 @@ def decodificarParidadMatriz(secuencia_bytes):
     error_detectado = False
     error_incorregible = False
 
-    # --- 1. Crear matriz de bits ---
-    N_filas_total = len(secuencia_bytes)
-    N_filas_datos = N_filas_total - 1
+    # --- 1. Matriz de bits ---
+    N_filas_total = len(secuencia_bytes)          # incluye fila 0 de paridad
     matriz = []
-
     for byte in secuencia_bytes:
-        bits = bin(byte)[2:].zfill(8)  # elimina '0b' y rellena a 8 bits
+        bits = bin(byte)[2:].zfill(8)
         matriz.append([int(b) for b in bits])
 
     # --- 2. Comprobación de paridades ---
@@ -60,51 +58,49 @@ def decodificarParidadMatriz(secuencia_bytes):
     errores_fila = 0
     errores_col = 0
 
-    # Paridad horizontal (longitudinal)
-    for i in range(1, N_filas_total):
+    # Paridad horizontal (filas de datos)
+    for i in range(1, N_filas_total):             # filas 1..N_filas_datos
         if sum(matriz[i]) % 2 != 0:
             fila_fallida = i
             errores_fila += 1
 
-    # Paridad vertical (por columnas)
+    # Paridad vertical (columnas, incluyendo fila 0)
     for j in range(8):
-        col_sum = sum(matriz[i][j] for i in range(N_filas_total))
-        if col_sum % 2 != 0:
+        if sum(matriz[i][j] for i in range(N_filas_total)) % 2 != 0:
             col_fallida = j
             errores_col += 1
 
-    # Paridad cruzada (esquina inferior derecha)
-    bit_cruzado = matriz[0][7]
-    total_unos = sum(sum(fila) for fila in matriz) - bit_cruzado
-    cruzado_ok = (total_unos + bit_cruzado) % 2 == 0
+    # Paridad cruzada: comprobamos paridad total de toda la matriz
+    total_unos = sum(sum(fila) for fila in matriz)
+    cruzado_ok = (total_unos % 2) == 0
 
     # --- 3. Análisis de errores ---
     if errores_fila == 0 and errores_col == 0 and cruzado_ok:
-        # Caso 1: sin errores
+        # sin errores
         pass
-
     elif errores_fila == 1 and errores_col == 1 and not cruzado_ok:
-        # Caso 2: error simple -> corregible
-        bit_original = matriz[fila_fallida][col_fallida]
-        matriz[fila_fallida][col_fallida] = 1 - bit_original
+        # error simple -> corregible
+        original = matriz[fila_fallida][col_fallida]
+        matriz[fila_fallida][col_fallida] = 1 - original
         error_detectado = True
-
     else:
-        # Caso 3: error múltiple o inconsistente
+        # múltiples errores o inconsistencia
         error_incorregible = True
 
-    # --- 4. Reconstrucción del mensaje ---
+    # --- 4. Reconstrucción ---
     if not error_incorregible:
         chars = []
         for i in range(1, N_filas_total):
-            bits_datos = matriz[i][:7]  # solo los 7 bits de datos
+            bits_datos = matriz[i][:7]
             ascii_val = int("".join(str(b) for b in bits_datos), 2)
             chars.append(chr(ascii_val))
         mensaje_recuperado = "".join(chars)
-
-    # --- 5. Resultado final ---
-    if error_incorregible:
+    else:
         mensaje_recuperado = ""
+
+    # --- 5. Estado final (prints informativos) ---
+    if error_incorregible:
+        print("[Error] Múltiples errores detectados o inconsistencia en paridad cruzada.")
     elif error_detectado:
         print(f"[Corrección] Error simple corregido en fila {fila_fallida}, columna {col_fallida}.")
     else:

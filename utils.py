@@ -633,3 +633,316 @@ def calculoErroresDetectables(codigos):
 # Calcula la cantidad de errores que un codigo puede corregir ((Hamming - 1) / 2)
 def calculoErroresCorregibles(codigos):
     return (calculoHamming(codigos) - 1) // 2
+
+
+# Crea un byte con el bit de paridad (par) de un caracter ASCII
+def agregarBitParidad(caracter):
+    valor_ascii_7bits = ord(caracter) & 0x7F
+    cantidad_de_unos = bin(valor_ascii_7bits).count('1')
+    bit_paridad = cantidad_de_unos % 2
+    byte_desplazado = valor_ascii_7bits << 1
+    byte_final = byte_desplazado | bit_paridad
+    
+    return byte_final
+
+
+# Recibe un byte con paridad y verifica si es correcto
+def verificarParidad(byte_recibido):    
+    bit_paridad_recibido = byte_recibido & 1
+    datos_7bits = byte_recibido >> 1
+    cantidad_de_unos = bin(datos_7bits).count('1')
+    bit_paridad_calculado = cantidad_de_unos % 2
+    
+    return bit_paridad_recibido == bit_paridad_calculado
+
+
+# Genera un bytearray que contiene el mensaje con bits de paridad longitudinal, vertical y cruzada.
+def genBytearrayMatrizParidad(mensaje):
+    N = len(mensaje)
+    matriz_bits = [[0] * 8 for _ in range(N + 1)]
+    
+    for i, caracter in enumerate(mensaje):
+        valor_ascii_7bits = ord(caracter) & 0x7F
+        bits_string = bin(valor_ascii_7bits)[2:].zfill(7)
+        
+        cantidad_de_unos = 0
+        for j, bit in enumerate(bits_string):
+            if bit == '1':
+                matriz_bits[i + 1][j] = 1
+                cantidad_de_unos += 1
+        
+        matriz_bits[i + 1][7] = cantidad_de_unos % 2
+        
+
+    for j in range(8):
+        cantidad_de_unos = 0
+        for i in range(1, N + 1):
+            cantidad_de_unos += matriz_bits[i][j]
+            
+        matriz_bits[0][j] = cantidad_de_unos % 2
+    
+    resultado_bytes = bytearray()
+    for i in range(N + 1):
+        bits_fila = "".join(str(bit) for bit in matriz_bits[i])
+        valor_byte = int(bits_fila, 2)
+        resultado_bytes.append(valor_byte)
+        
+    return resultado_bytes
+
+
+# Decodifica una secuencia de bytes (bytearray) con paridad
+# Corrige un error simple y devuelve el mensaje ASCII recuperado o cadena vacía si no se puede corregir.
+def decodificarParidadMatriz(secuencia_bytes):
+    mensaje_recuperado = ""
+    error_detectado = False
+    error_incorregible = False
+
+    # --- 1. Matriz de bits ---
+    N_filas_total = len(secuencia_bytes)          # incluye fila 0 de paridad
+    matriz = []
+    for byte in secuencia_bytes:
+        bits = bin(byte)[2:].zfill(8)
+        matriz.append([int(b) for b in bits])
+
+    # --- 2. Comprobación de paridades ---
+    fila_fallida = -1
+    col_fallida = -1
+    errores_fila = 0
+    errores_col = 0
+
+    # Paridad horizontal (filas de datos)
+    for i in range(1, N_filas_total):             # filas 1..N_filas_datos
+        if sum(matriz[i]) % 2 != 0:
+            fila_fallida = i
+            errores_fila += 1
+
+    # Paridad vertical (columnas, incluyendo fila 0)
+    for j in range(8):
+        if sum(matriz[i][j] for i in range(N_filas_total)) % 2 != 0:
+            col_fallida = j
+            errores_col += 1
+
+    # Paridad cruzada: comprobamos paridad total de toda la matriz
+    total_unos = sum(sum(fila) for fila in matriz)
+    cruzado_ok = (total_unos % 2) == 0
+
+    # --- 3. Análisis de errores ---
+    if errores_fila == 0 and errores_col == 0 and cruzado_ok:
+        # sin errores
+        pass
+    elif errores_fila == 1 and errores_col == 1 and not cruzado_ok:
+        # error simple -> corregible
+        original = matriz[fila_fallida][col_fallida]
+        matriz[fila_fallida][col_fallida] = 1 - original
+        error_detectado = True
+    else:
+        # múltiples errores o inconsistencia
+        error_incorregible = True
+
+    # --- 4. Reconstrucción ---
+    if not error_incorregible:
+        chars = []
+        for i in range(1, N_filas_total):
+            bits_datos = matriz[i][:7]
+            ascii_val = int("".join(str(b) for b in bits_datos), 2)
+            chars.append(chr(ascii_val))
+        mensaje_recuperado = "".join(chars)
+    else:
+        mensaje_recuperado = ""
+
+    # --- 5. Estado final (prints informativos) ---
+    if error_incorregible:
+        print("[Error] Múltiples errores detectados o inconsistencia en paridad cruzada.")
+    elif error_detectado:
+        print(f"[Corrección] Error simple corregido en fila {fila_fallida}, columna {col_fallida}.")
+    else:
+        print("[OK] Sin errores detectados.")
+
+    return mensaje_recuperado
+
+
+"""""""""""""""""""""""""""""""""""""""""""""
+---------========   T P 5   ========---------
+"""""""""""""""""""""""""""""""""""""""""""""
+
+# Genera la matriz que representa al canal de las cadenas recibidas
+def genMatrizCanal(secuencia_entrada, secuencia_salida):
+    alfabeto_A = genAlfabeto(secuencia_entrada)
+    alfabeto_B = genAlfabeto(secuencia_salida)
+    
+    conteo_A = {simbolo: 0 for simbolo in alfabeto_A}
+    conteo_pares = {sim_A: {sim_B: 0 for sim_B in alfabeto_B} for sim_A in alfabeto_A}
+        
+    for i in range(len(secuencia_entrada)):
+        sim_A = secuencia_entrada[i]
+        sim_B = secuencia_salida[i]
+        
+        conteo_pares[sim_A][sim_B] += 1
+        conteo_A[sim_A] += 1
+        
+    matriz_canal = []
+    for sim_A in alfabeto_A:
+        fila = []
+        denominador = conteo_A[sim_A]
+        
+        for sim_B in alfabeto_B:
+            if denominador == 0:
+                fila.append(0.0)
+            else:
+                numerador = conteo_pares[sim_A][sim_B]
+                prob = numerador / denominador
+                fila.append(prob)
+                
+        matriz_canal.append(fila)
+        
+    return matriz_canal
+
+
+# Calcula la lista de probabilidades de los símbolos de salida P(B)
+# P(B) = Suma sobre A de P(A, B)
+def calcularProbabilidadesSalida(probs_priori_A, matriz_canal_B_dado_A):
+    matriz_simultanea = calcularMatrizSimultanea(probs_priori_A, matriz_canal_B_dado_A)
+
+    num_A = len(matriz_simultanea)
+    num_B = len(matriz_simultanea[0])
+    probs_salida_B = [0.0] * num_B
+    
+    for j in range(num_B):
+        for i in range(num_A):
+            probs_salida_B[j] += matriz_simultanea[i][j]
+        
+    return probs_salida_B
+
+
+# Calcula la matriz de probabilidades a posteriori P(A|B)
+# P(A|B) = P(A, B) / P(B)
+def calcularMatrizPosteriori(probs_priori_A, matriz_canal_B_dado_A):
+    matriz_simultanea = calcularMatrizSimultanea(probs_priori_A, matriz_canal_B_dado_A)
+    probs_salida_B = calcularProbabilidadesSalida(probs_priori_A, matriz_canal_B_dado_A)
+
+    num_A = len(matriz_simultanea)
+    num_B = len(matriz_simultanea[0])
+    matriz_posteriori = [[0.0] * num_B for _ in range(num_A)]
+    
+    for i in range(num_A):
+        for j in range(num_B):
+            if probs_salida_B[j] == 0:
+                matriz_posteriori[i][j] = 0.0
+            else:
+                matriz_posteriori[i][j] = matriz_simultanea[i][j] / probs_salida_B[j]
+    
+    return matriz_posteriori
+
+
+# Calcula la matriz de probabilidades de eventos simultáneos P(A, B)
+# P(A, B) = P(B|A) * P(A)
+def calcularMatrizSimultanea(probs_priori_A, matriz_canal_B_dado_A):
+    num_A = len(probs_priori_A)
+    num_B = len(matriz_canal_B_dado_A[0])
+    matriz_simultanea = [[0.0] * num_B for _ in range(num_A)]
+    
+    for i in range(num_A):
+        for j in range(num_B):
+            matriz_simultanea[i][j] = matriz_canal_B_dado_A[i][j] * probs_priori_A[i]
+            
+    return matriz_simultanea
+
+
+# Calcula la lista de entropías a posteriori H(A|Bj)
+# (Calcula la entropía de cada columna de la matriz P(A|B))
+def calcularEntropiasPosteriori(probs_priori_A, matriz_canal_B_dado_A):
+    matriz_posteriori = calcularMatrizPosteriori(probs_priori_A, matriz_canal_B_dado_A)
+        
+    num_A = len(matriz_posteriori)
+    num_B = len(matriz_posteriori[0])  
+    lista_entropias_posteriori = []
+    
+    for j in range(num_B):
+        columna_j = [matriz_posteriori[i][j] for i in range(num_A)]
+        entropia_col = calculoEntropia(columna_j)
+        lista_entropias_posteriori.append(entropia_col)
+        
+    return lista_entropias_posteriori
+
+
+# Calcula la Equivocación o Ruido H(A|B)
+def calcularEquivocacion(probs_priori_A, matriz_canal_B_dado_A):
+    entropias_posteriori = calcularEntropiasPosteriori(probs_priori_A, matriz_canal_B_dado_A)
+    probs_salida_B = calcularProbabilidadesSalida(probs_priori_A, matriz_canal_B_dado_A)
+    equivocacion = sum(p_b * h_post for p_b, h_post in zip(probs_salida_B, entropias_posteriori))
+        
+    return equivocacion
+
+
+# Calcula la Pérdida H(B|A)
+def calcularPerdida(probs_priori_A, matriz_canal_B_dado_A):
+    num_A = len(probs_priori_A)
+    perdida = 0.0
+    
+    for i in range(num_A):
+        entropia_fila = calculoEntropia(matriz_canal_B_dado_A[i])
+        perdida += probs_priori_A[i] * entropia_fila
+        
+    return perdida
+
+
+# Calcula la Entropía Afín o Conjunta H(A, B).
+def calcularEntropiaAfin(probs_priori_A, matriz_canal_B_dado_A):
+    matriz_simultanea = calcularMatrizSimultanea(probs_priori_A, matriz_canal_B_dado_A)
+
+    lista_probs_simultaneas = []
+    for fila in matriz_simultanea:
+        lista_probs_simultaneas.extend(fila)
+
+    return calculoEntropia(lista_probs_simultaneas)
+
+
+# Calcula la Información Mutua I(A, B) por su fórmula de definición
+def calcularInformacionMutua(probs_priori_A, matriz_canal_B_dado_A):
+    probs_A = probs_priori_A
+    probs_B = calcularProbabilidadesSalida(probs_priori_A, matriz_canal_B_dado_A)
+    matriz_A_B = calcularMatrizSimultanea(probs_priori_A, matriz_canal_B_dado_A)
+        
+    num_A = len(matriz_A_B)
+    num_B = len(matriz_A_B[0]) 
+    info_mutua = 0.0
+    
+    for i in range(num_A):
+        for j in range(num_B):
+            p_a = probs_A[i]
+            p_b = probs_B[j]
+            p_ab = matriz_A_B[i][j]
+            
+            if p_ab > 0:
+                termino = p_ab * math.log2(p_ab / (p_a * p_b))
+                info_mutua += termino
+                
+    return info_mutua
+
+"""""""""""""""""""""""""""""""""""""""""""""
+---------========   Utils   ========---------
+"""""""""""""""""""""""""""""""""""""""""""""
+
+# Imprime un vector con formato controlando los decimales
+def imprimirVector(vector, decimales = 4):
+    elementos_formateados = []
+    
+    formato = f".{decimales}f"
+    
+    for item in vector:
+        if isinstance(item, (int, float)):
+            elementos_formateados.append(f"{item:{formato}}")
+        else:
+            elementos_formateados.append(str(item))
+            
+    string_interior = ", ".join(elementos_formateados)
+    print(f"[{string_interior}]")
+
+
+# Imprime una matriz con formato controlando los decimales
+def imprimirMatriz(matriz, decimales = 4):
+    print("[")
+    for fila in matriz:
+        print("  ", end="")
+        imprimirVector(fila, decimales=decimales)
+    print("]")
