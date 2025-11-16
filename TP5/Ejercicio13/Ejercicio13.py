@@ -34,9 +34,8 @@ for i, (probs, matriz_canal) in enumerate(zip(probs_lista, matrices_lista), star
     print(f"\n--- Canal {i} ---")
     
     entropia_priori = utils.calculoEntropia(probs)
-    print(f"Entropía a Priori H(A):")
-    utils.imprimirVector([entropia_priori], decimales)
+    print(f"Entropía a Priori H(A): {entropia_priori:.4f}")
 
     lista_entropias_post = TP5_Funciones.calcularEntropiasPosteriori(probs, matriz_canal)
-    print(f"Entropías a Posteriori H(A|Bj):")
-    utils.imprimirVector(lista_entropias_post, decimales)
+    print(f"Entropías a Posteriori H(A|bj):")
+    utils.imprimirEntropiasPosteriori(lista_entropias_post)

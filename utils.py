@@ -611,7 +611,7 @@ def comprimirRLC(mensaje):
 
 
 # Calcular la distancia de Hamming (distancia mínima entre cualquier par de sus palabras código)
-def calculoHamming(codigos):
+def calcularHamming(codigos):
     n = len(codigos)        
     min_distancia = float('inf')
     
@@ -626,13 +626,13 @@ def calculoHamming(codigos):
 
 
 # Calcula la cantidad de errores que un codigo puede detectar (Hamming - 1)
-def calculoErroresDetectables(codigos):
-    return calculoHamming(codigos) - 1
+def calcularErroresDetectables(codigos):
+    return calcularHamming(codigos) - 1
 
 
 # Calcula la cantidad de errores que un codigo puede corregir ((Hamming - 1) / 2)
-def calculoErroresCorregibles(codigos):
-    return (calculoHamming(codigos) - 1) // 2
+def calcularErroresCorregibles(codigos):
+    return (calcularHamming(codigos) - 1) // 2
 
 
 # Crea un byte con el bit de paridad (par) de un caracter ASCII
@@ -919,6 +919,14 @@ def calcularInformacionMutua(probs_priori_A, matriz_canal_B_dado_A):
                 
     return info_mutua
 
+
+"""""""""""""""""""""""""""""""""""""""""""""
+---------========   T P 6   ========---------
+"""""""""""""""""""""""""""""""""""""""""""""
+
+
+
+
 """""""""""""""""""""""""""""""""""""""""""""
 ---------========   Utils   ========---------
 """""""""""""""""""""""""""""""""""""""""""""
@@ -946,3 +954,66 @@ def imprimirMatriz(matriz, decimales = 4):
         print("  ", end="")
         imprimirVector(fila, decimales=decimales)
     print("]")
+
+
+# Imprime una lista de entropías a posteriori con etiquetas genéricas
+def imprimirEntropiasPosteriori(lista_entropias, decimales = 4):
+    formato = f".{decimales}f"
+    
+    for j, entropia in enumerate(lista_entropias, start=1):
+        etiqueta = f"b{j}"
+        print(f"  H(A|{etiqueta}): {entropia:{formato}} bits")
+
+
+# Genera una lista de probabilidades equiprobables.
+def genProbabilidadesEquiprobables(cant):
+    prob = 1.0 / cant
+    return [prob] * cant
+
+
+# Bloques de Texto para copiar y pegar
+asd = 0
+if asd == 1:
+    probs_priori = []
+    matriz_canal = [[]]
+    decimales = 4
+
+    print("Probabilidades a Priori P(A):")
+    imprimirVector(probs_priori, decimales)
+
+    print("Matriz del Canal P(B|A):")
+    imprimirMatriz(matriz_canal, decimales)
+
+    probs_salida = calcularProbabilidadesSalida(probs_priori, matriz_canal)
+    print("Probabilidades de Salida P(B):")
+    imprimirVector(probs_salida, decimales)
+
+    matriz_simultanea = calcularMatrizSimultanea(probs_priori, matriz_canal)
+    print("Matriz de Eventos Simultaneos P(A, B):")
+    imprimirMatriz(matriz_simultanea, decimales)
+
+    matriz_posteriori = calcularMatrizPosteriori(probs_priori, matriz_canal)
+    print("Matriz a Posteriori P(A|B):")
+    imprimirMatriz(matriz_posteriori, decimales)
+
+    entropias_posteriori = calcularEntropiasPosteriori(probs_priori, matriz_canal)
+    print("Entropias a Posteriori H(A|Bj):")
+    imprimirEntropiasPosteriori(entropias_posteriori, decimales)
+
+    entropia_priori = calculoEntropia(probs_priori)
+    print(f"Entropia a Priori H(A): {entropia_priori:.{decimales}f} bits")
+
+    entropia_salida = calculoEntropia(probs_salida)
+    print(f"Entropia de Salida H(B): {entropia_salida:.{decimales}f} bits")
+
+    equivocacion = calcularEquivocacion(probs_priori, matriz_canal)
+    print(f"Equivocacion H(A|B): {equivocacion:.{decimales}f} bits")
+
+    perdida = calcularPerdida(probs_priori, matriz_canal)
+    print(f"Perdida H(B|A): {perdida:.{decimales}f} bits")
+
+    entropia_afin = calcularEntropiaAfin(probs_priori, matriz_canal)
+    print(f"Entropia Afin H(A, B): {entropia_afin:.{decimales}f} bits")
+
+    informacion_mutua = calcularInformacionMutua(probs_priori, matriz_canal)
+    print(f"Informacion Mutua I(A, B): {informacion_mutua:.{decimales}f} bits")
