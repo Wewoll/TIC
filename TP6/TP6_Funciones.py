@@ -21,7 +21,7 @@ def esCanalSinRuido(matriz_canal):
     return True
 
 
-# Verifica si un canal es "Determinante".
+# Verifica si un canal es "Determinante"
 def esCanalDeterminante(matriz_canal):
     for fila in matriz_canal:
         conteo_no_cero = 0
@@ -171,7 +171,7 @@ def calcularCapacidadEspecial(matriz_canal):
 
 
 # Estima la capacidad de un canal binario
-def estimarCapacidadCanalBinario(matriz_canal, paso):
+def estimarCapacidadCanalBinario(matriz_canal, paso = 0.0001):
     capacidad_estimada = -1.0
     probabilidad_optima = 0.0
     
@@ -185,4 +185,31 @@ def estimarCapacidadCanalBinario(matriz_canal, paso):
             capacidad_estimada = info_mutua_actual
             probabilidad_optima = p
             
-    return (capacidad_estimada, probabilidad_optima)
+    return capacidad_estimada, probabilidad_optima
+
+
+# Calcula la probabilidad de error (P_E)
+def calcularProbabilidadError(probs_priori, matriz_canal):
+    num_entradas = len(matriz_canal)
+    num_salidas = len(matriz_canal[0])
+
+    indices_maximos_regla = [-1] * num_salidas
+    
+    for j in range(num_salidas):
+        max_val = -1.0
+        indice_max = -1
+        for i in range(num_entradas):
+            if matriz_canal[i][j] > max_val:
+                max_val = matriz_canal[i][j]
+                indice_max = i
+        indices_maximos_regla[j] = indice_max
+
+    prob_error = 0.0
+    
+    for j in range(num_salidas):
+        for i in range(num_entradas):
+            if i != indices_maximos_regla[j]:
+                prob_simultanea_error = probs_priori[i] * matriz_canal[i][j]
+                prob_error += prob_simultanea_error
+
+    return prob_error

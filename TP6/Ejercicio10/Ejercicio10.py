@@ -5,7 +5,7 @@ import TP6_Funciones
 import utils
 
 # Estima la capacidad de un canal binario
-def estimarCapacidadCanalBinario(matriz_canal, paso):
+def estimarCapacidadCanalBinario(matriz_canal, paso = 0.0001):
     """
     Ejercicio 10:
     Estima la capacidad de un canal binario probando diferentes
@@ -41,4 +41,4 @@ def estimarCapacidadCanalBinario(matriz_canal, paso):
             capacidad_estimada = info_mutua_actual
             probabilidad_optima = p
             
-    return (capacidad_estimada, probabilidad_optima)
+    return capacidad_estimada, probabilidad_optima

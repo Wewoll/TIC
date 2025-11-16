@@ -54,3 +54,10 @@ utils.imprimirMatriz(matriz_compuesta)
 
 capacidad = utils.calcularCapacidadEspecial(matriz_canal)
 print(f"Capacidad (C): {capacidad:.{decimales}f} bits")
+
+capacidad_estimada, probabilidad_optima = utils.estimarCapacidadCanalBinario(matriz_canal)
+print(f"Capacidad estimada (C): {capacidad_estimada:.{decimales}f} bits")
+print(f"Probabilidad optima (p): {probabilidad_optima:.{decimales}f}")
+
+prob_error = utils.calcularProbabilidadError(probs_priori, matriz_canal)
+print(f"Probabilidad de error (P_e): {prob_error:.{decimales}f}")
