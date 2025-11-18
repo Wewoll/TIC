@@ -46,6 +46,7 @@
 * `decodificarDeBytes(alfabeto, codigos, bytes)` -> str
 * `calcularTasaCompresion(msj_og, msj_bytes)` -> Fraction
 * `comprimirRLC(mensaje)` -> bytearray
+* `decodificarRLC(secuencia_bytes)` -> str
 * `calcularHamming(codigos)` -> int
 * `calcularErroresDetectables(codigos)` -> int
 * `calcularErroresCorregibles(codigos)` -> int
@@ -68,12 +69,12 @@
 ## --- TP 6: CANALES (Capacidad y Reducción) ---
 * `esCanalSinRuido(matriz)` -> bool
 * `esCanalDeterminante(matriz)` -> bool
-* `esCanalUniforme(matriz)` -> bool
 * `calcularMatrizCompuesta(matriz_AB, matriz_BC)` -> list[list] (P(C|A))
 * `verificarColumnasProporcionales(matriz, c1, c2)` -> bool
 * `proporcionalEnUnSentido(matriz, a, b, tol=1e-9)` -> bool
 * `genMatrizReduccion(matriz, c1, c2)` -> list[list] (Transformación)
 * `realizarReduccionMaxima(matriz)` -> list[list]
+* `esCanalUniforme(matriz)` -> bool
 * `calcularCapacidadEspecial(matriz)` -> float (Para det/sin ruido/unif)
 * `estimarCapacidadCanalBinario(matriz, paso)` -> (float, float)
 * `calcularProbabilidadError(probs_priori, matriz)` -> float (Según Guía TP)

@@ -610,6 +610,24 @@ def comprimirRLC(mensaje):
     return resultado_bytes
 
 
+# Decodifica una secuencia de bytes comprimida con RLC
+def decodificarRLC(secuencia_bytes):
+    mensaje_decodificado = []
+    
+    # Recorremos el bytearray saltando de 2 en 2
+    # (byte par = caracter, byte impar = cantidad)
+    for i in range(0, len(secuencia_bytes), 2):
+        valor_ascii = secuencia_bytes[i]
+        contador = secuencia_bytes[i+1]
+        
+        caracter = chr(valor_ascii)
+        racha = caracter * contador
+        
+        mensaje_decodificado.append(racha)
+        
+    return "".join(mensaje_decodificado)
+
+
 # Calcular la distancia de Hamming (distancia mínima entre cualquier par de sus palabras código)
 def calcularHamming(codigos):
     n = len(codigos)        

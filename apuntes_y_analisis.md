@@ -173,13 +173,6 @@
     * La pérdida $H(B|A) = 0$.
     * La capacidad es $C = \log_2(\text{Nro de Salidas})$.
 
-### `esCanalUniforme(matriz)`
-* **Procedimiento:** Se verifica si todas las filas son **permutaciones** de la primera fila (es decir, tienen los mismos valores de probabilidad, aunque en distinto orden).
-* **Análisis:**
-    * En un canal uniforme, la "dispersión" del ruido es igual para cualquier símbolo de entrada.
-    * La pérdida $H(B|A)$ es constante e igual a la entropía de cualquier fila.
-    * La capacidad se calcula con la fórmula simplificada: $C = \log_2(\text{Salidas}) - H(\text{fila})$.
-
 ### `calcularMatrizCompuesta` (Canales en Serie)
 * **Procedimiento:** Se realiza la **multiplicación de matrices**: $P(C|A) = P(B|A) \times P(C|B)$.
 * **Análisis:**
@@ -204,6 +197,13 @@
 * **Análisis:**
     * Transforma el canal en su versión más simple posible (mínima cantidad de salidas) sin perder Capacidad de Información.
     * Si la matriz resultante es cuadrada e identidad (o una permutación), significa que el canal original era equivalente a un canal sin ruido (aunque tuviera más salidas).
+
+### `esCanalUniforme(matriz)`
+* **Procedimiento:** Se verifica si todas las filas son **permutaciones** de la primera fila (es decir, tienen los mismos valores de probabilidad, aunque en distinto orden).
+* **Análisis:**
+    * En un canal uniforme, la "dispersión" del ruido es igual para cualquier símbolo de entrada.
+    * La pérdida $H(B|A)$ es constante e igual a la entropía de cualquier fila.
+    * La capacidad se calcula con la fórmula simplificada: $C = \log_2(\text{Salidas}) - H(\text{fila})$.
 
 ### `calcularCapacidadEspecial` (Atajos de Capacidad)
 * **Procedimiento:** Clasifica el canal y aplica fórmulas simplificadas:
