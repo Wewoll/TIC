@@ -1210,12 +1210,63 @@ def imprimirBytearray(byte_array):
 asd = 0
 if asd == 1:
     if True:
+        alfabeto = ['S1', 'S2', 'S3', 'S4']
+        probabilidades = [0.4, 0.3, 0.2, 0.1]
+        codigos = ['0', '10', '110', '111']
+        mensaje_str = "S1S2S1S3"
+        mensaje_rlc = "AAABBC"
+        decimales = 4
         probs_priori = []
         matriz_canal = [[]]    
         matriz_canal_A = [[]]
         matriz_canal_B = [[]]
         decimales = 4
 
+
+    '''--- TP4 ---'''
+    # 1. Análisis de Código (Shannon, Kraft, Eficiencia)
+    cumple_shannon = cumpleShannon(probabilidades, codigos, N=1)
+    print(f"Cumple 1er Teorema de Shannon: {cumple_shannon}")
+    
+    kraft = calculoInecuacionKraft(codigos)
+    print(f"Inecuacion de Kraft (<= 1): {kraft:.{decimales}f}")
+    
+    rendimiento = calculoRendimiento(codigos, probabilidades)
+    print(f"Rendimiento (η): {rendimiento:.{decimales}f}")
+    
+    redundancia = calculoRedundancia(codigos, probabilidades)
+    print(f"Redundancia (R): {redundancia:.{decimales}f}")
+
+    # 2. Generación de Códigos (Huffman y SF)
+    codigos_huffman = algoritmoHuffman(probabilidades)
+    print(f"Códigos Huffman: {codigos_huffman}")
+    
+    codigos_sf = algoritmoShannonFano(probabilidades)
+    print(f"Códigos Shannon-Fano: {codigos_sf}")
+    
+    # 3. Hamming
+    d_hamming = calcularHamming(codigos)
+    err_det = calcularErroresDetectables(codigos)
+    err_corr = calcularErroresCorregibles(codigos)
+    print(f"Distancia de Hamming (d): {d_hamming}")
+    print(f"Errores Detectables: {err_det} | Corregibles: {err_corr}")
+
+    # 4. Compresión RLC y Tasa
+    bytes_rlc = comprimirRLC(mensaje_rlc)
+    print(f"RLC Comprimido: {list(bytes_rlc)}")
+    tasa_comp = calcularTasaCompresion(mensaje_rlc, bytes_rlc)
+    print(f"Tasa de Compresión: {tasa_comp}")
+    
+    # 5. Paridad Matriz (2D)
+    bytes_paridad = genBytearrayMatrizParidad(mensaje_str)
+    print("Matriz de Paridad (Codificada):")
+    imprimirBytearray(bytes_paridad)
+    
+    mensaje_recup_paridad = decodificarParidadMatriz(bytes_paridad)
+    print(f"Mensaje Recuperado (Paridad): '{mensaje_recup_paridad}'")
+
+
+    '''--- TP5 ---'''
     print("Probabilidades a Priori P(A):")
     imprimirVector(probs_priori, decimales)
 
@@ -1256,6 +1307,8 @@ if asd == 1:
     informacion_mutua = calcularInformacionMutua(probs_priori, matriz_canal)
     print(f"Informacion Mutua I(A, B): {informacion_mutua:.{decimales}f} bits")
 
+
+    '''--- TP6 ---'''
     matriz_compuesta = calcularMatrizCompuesta(matriz_canal_A, matriz_canal_B)
     print("Matriz Compuesta P(C|A):")
     imprimirMatriz(matriz_compuesta)
